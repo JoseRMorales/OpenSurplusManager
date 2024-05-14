@@ -27,7 +27,7 @@ devices:
     expected_consumption: 1000
     consumption_integration: 
       name: http_get
-      path: http://localhost:8000/consumption
+      path: http://localhost:8000/consumo1/consumption
     control_integration: 
       name: http_post
       path: http://localhost:8000/switch

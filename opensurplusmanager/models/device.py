@@ -7,3 +7,4 @@ from .integration import Integration
 class Device:
     name: str
     integration: Integration
+    consumption = 0
