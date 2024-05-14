@@ -1,0 +1,34 @@
+integrations:
+  - http_get:
+    timeout: 5
+  - http_post:
+# consumption:
+#   type: consumption
+#   integration: 
+#     name: http_get
+#     path: http://localhost:8000/consumption
+#     method: GET
+#     timeout: 5
+
+# production:
+#   type: production
+#   integration: 
+#     name: http_get
+#     path: http://localhost:8000/production
+#     timeout: 5
+
+surplus:
+    http_get:
+      path: http://localhost:8000/surplus
+
+devices:
+  - name: "consumo1"
+    type: switch
+    expected_consumption: 1000
+    consumption_integration: 
+      name: http_get
+      path: http://localhost:8000/consumption
+    control_integration: 
+      name: http_post
+      path: http://localhost:8000/switch
+      method: POST
