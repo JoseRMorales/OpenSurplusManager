@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass, field
 
 from opensurplusmanager.models.device import Device
+from opensurplusmanager.utils import logger
 
 
 @dataclass
@@ -30,4 +31,4 @@ class Core:
 
     def add_device(self, device: Device):
         self.__devices.append(device)
-        print(f"Added device {device.name} to core")
+        logger.info("Added device %s to core", device.name)

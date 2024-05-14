@@ -8,6 +8,7 @@ from opensurplusmanager.integrations.http_get.device import HTTPGetDevice
 from opensurplusmanager.integrations.http_get.sensor import HTTPGetSensor
 from opensurplusmanager.models.integration import Integration
 from opensurplusmanager.models.sensor import SensorType
+from opensurplusmanager.utils import logger
 
 
 @dataclass
@@ -31,7 +32,7 @@ class HttpGet(Integration):
             integration_name = device["consumption_integration"]["name"]
             if integration_name == "http_get":
                 device_config = device["consumption_integration"]
-                print(f"Loading device {device['name']}...")
+                logger.debug("Loading device %s", device["name"])
                 device = HTTPGetDevice(
                     name=device["name"],
                     path=device_config["path"],
@@ -41,34 +42,42 @@ class HttpGet(Integration):
                 self.core.add_device(device)
 
     def __init__(self, core: Core):
+        logger.info("Initializing HTTP GET integration...")
         self.core = core
         self.devices = []
-        print("Running HTTP GET setup...")
         self._load_devices()
 
     async def run(self) -> None:
-        print("Running HTTP GET integration...")
+        logger.info("Running HTTP GET integration...")
         while True:
             async with aiohttp.ClientSession() as session:
                 if self.surplus:
                     async with session.get(self.surplus.path) as response:
-                        print("Got response from surplus sensor:", response.status)
+                        logger.debug(
+                            "Got response from surplus sensor: %s", response.status
+                        )
                         # Set the surplus value
                         # Convert the response to a float
                         try:
                             self.core.surplus = float(await response.text())
                         except ValueError:
-                            print("Invalid API response for surplus sensor")
+                            logger.error("Invalid API response for surplus sensor")
 
                 for device in self.devices:
                     async with session.get(device.path) as response:
-                        print("Got response from device:", response.status)
+                        logger.debug(
+                            "Got response from device %s: %s",
+                            device.name,
+                            response.status,
+                        )
                         # Set the device consumption value
                         # Convert the response to a float
                         try:
                             device.consumption = float(await response.text())
                         except ValueError:
-                            print("Invalid API response for device")
+                            logger.error(
+                                "Invalid API response for device %s", device.name
+                            )
             await asyncio.sleep(5)
 
     async def get_consumption(self, device_name):

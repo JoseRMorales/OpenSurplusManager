@@ -8,13 +8,14 @@ import sys
 import yaml
 
 from opensurplusmanager.core import Core
+from opensurplusmanager.utils import logger
 
 core = Core()
 
 
 async def _load_integrations() -> None:
     """Load the integrations for the Open Surplus Manager application."""
-    print("Loading integrations...")
+    logger.info("Loading integrations...")
 
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,10 +37,9 @@ async def _load_integrations() -> None:
 
 def _load_config() -> None:
     """Load the configuration for the Open Surplus Manager application."""
-    print("Loading configuration...")
+    logger.info("Loading configuration...")
     with open("config.yaml", "r", encoding="utf-8") as config_file:
         config = yaml.load(config_file, Loader=yaml.FullLoader)
-        print("config", config)
         core.config = config
 
 
@@ -52,5 +52,8 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
-    print("Hello, World!")
-    sys.exit(asyncio.run(main()))
+    try:
+        sys.exit(asyncio.run(main()))
+    except KeyboardInterrupt:
+        logger.info("Shutting down...")
+        sys.exit(0)
