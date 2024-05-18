@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 
 
-class Integration(ABC):
+class ControlIntegration(ABC):
     @abstractmethod
-    def get_consumption(self, device_name):
+    async def turn_on(self, device_name):
         pass
 
     @abstractmethod
-    def turn_on(self, device_name):
+    async def turn_off(self, device_name):
         pass
 
     @abstractmethod
-    def turn_off(self, device_name):
+    async def regulate(self, device_name, power):
         pass

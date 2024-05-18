@@ -1,25 +1,25 @@
 import asyncio
 from dataclasses import dataclass, field
+from typing import List
 
 import aiohttp
 
 from opensurplusmanager.core import Core
-from opensurplusmanager.integrations.http_get.device import HTTPGetDevice
+from opensurplusmanager.integrations.http_get.entity import HTTPGetEntity
 from opensurplusmanager.integrations.http_get.sensor import HTTPGetSensor
-from opensurplusmanager.models.integration import Integration
+from opensurplusmanager.models.consumption import ConsumptionEntity
 from opensurplusmanager.models.sensor import SensorType
 from opensurplusmanager.utils import logger
 
 
 @dataclass
-class HttpGet(Integration):
+class HttpGet:
     core: Core
-    devices: list = field(default_factory=list)
-    consumption: HTTPGetSensor = None
+    entities: List[HTTPGetEntity] = field(default_factory=list)
     production: HTTPGetSensor = None
     surplus: HTTPGetSensor = None
 
-    def _load_devices(self):
+    def __load_devices(self):
         if "surplus" in self.core.config and "http_get" in self.core.config["surplus"]:
             surplus_sensor = HTTPGetSensor(
                 sensor_type=SensorType.SURPLUS,
@@ -28,24 +28,24 @@ class HttpGet(Integration):
             self.surplus = surplus_sensor
 
         for device in self.core.config.get("devices", []):
-            print(device)
             integration_name = device["consumption_integration"]["name"]
             if integration_name == "http_get":
                 device_config = device["consumption_integration"]
                 logger.debug("Loading device %s", device["name"])
-                device = HTTPGetDevice(
+                consumption_entity = ConsumptionEntity()
+                entity = HTTPGetEntity(
                     name=device["name"],
                     path=device_config["path"],
-                    integration=self,
+                    consumption_entity=consumption_entity,
                 )
-                self.devices.append(device)
-                self.core.add_device(device)
+                self.entities.append(entity)
+                self.core.add_consumption_entity(entity.name, consumption_entity)
 
     def __init__(self, core: Core):
         logger.info("Initializing HTTP GET integration...")
         self.core = core
-        self.devices = []
-        self._load_devices()
+        self.entities: List[HTTPGetEntity] = []
+        self.__load_devices()
 
     async def run(self) -> None:
         logger.info("Running HTTP GET integration...")
@@ -63,31 +63,29 @@ class HttpGet(Integration):
                         except ValueError:
                             logger.error("Invalid API response for surplus sensor")
 
-                for device in self.devices:
-                    async with session.get(device.path) as response:
+                entity: HTTPGetEntity
+                for entity in self.entities:
+                    async with session.get(entity.path) as response:
                         logger.debug(
                             "Got response from device %s: %s",
-                            device.name,
+                            entity.name,
                             response.status,
                         )
                         # Set the device consumption value
                         # Convert the response to a float
                         try:
-                            device.consumption = float(await response.text())
+                            consumption = float(await response.text())
+                            entity.set_consumption(consumption)
+                            logger.debug(
+                                "Got consumption from device %s: %s",
+                                entity.name,
+                                entity.get_consumption(),
+                            )
                         except ValueError:
                             logger.error(
-                                "Invalid API response for device %s", device.name
+                                "Invalid API response for device %s", entity.name
                             )
             await asyncio.sleep(5)
-
-    async def get_consumption(self, device_name):
-        pass
-
-    async def turn_on(self, device_name):
-        pass
-
-    async def turn_off(self, device_name):
-        pass
 
 
 async def setup(core: Core) -> bool:

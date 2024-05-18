@@ -22,13 +22,26 @@ surplus:
       path: http://localhost:8000/surplus
 
 devices:
-  - name: "consumo1"
+  - name: "device1"
     type: switch
     expected_consumption: 1000
     consumption_integration: 
       name: http_get
-      path: http://localhost:8000/consumo1/consumption
-    control_integration: 
-      name: http_post
-      path: http://localhost:8000/switch
-      method: POST
+      path: http://localhost:8001/device1/consumption
+    control_integration:
+      turn_on: 
+        name: http_post
+        path: http://localhost:8001/device1/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "on"
+      turn_off:
+        name: http_post
+        path: http://localhost:8001/device1/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "off"
