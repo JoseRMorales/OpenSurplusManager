@@ -13,21 +13,28 @@ from opensurplusmanager.utils import logger
 class Core:
     consumption = 0
     production = 0
-    surplus = 0
+    __surplus = 0
     config = {}
+    balanced = False
+
     __devices: Dict[str, Device] = field(default_factory=dict)
 
-    async def core_loop(self):
-        while True:
-            print("Running core loop...")
-            self.print()
-            for device in self.__devices.values():
-                if self.surplus < 1500:
-                    await device.turn_off()
-                else:
-                    await device.turn_on()
+    async def balanced_load(self):
+        pass
 
-            await asyncio.sleep(1)
+    async def focused_load(self):
+        for device in self.__devices.values():
+            if self.surplus < 1500:
+                await device.turn_off()
+            else:
+                await device.turn_on()
+
+    async def update(self):
+        logger.info("Core is running")
+        if self.balanced:
+            await self.balanced_load()
+        else:
+            await self.focused_load()
 
     def print(self):
         print("Core:")
@@ -55,3 +62,19 @@ class Core:
             )
             self.__devices[name] = new_device
         logger.info("Added control integration to device %s to core", name)
+
+    async def run(self):
+        from opensurplusmanager.api import Api
+
+        api = Api(core=self)
+        await api.run()
+
+    @property
+    def surplus(self):
+        return self.__surplus
+
+    @surplus.setter
+    def surplus(self, value):
+        logger.info("Setting surplus to %s", value)
+        self.__surplus = value
+        asyncio.create_task(self.update())

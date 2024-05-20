@@ -74,6 +74,16 @@ class HTTPPost(ControlIntegration):
 
     async def turn_on(self, device_name):
         logger.info("Turning on device %s", device_name)
+        entity = self.turn_on_entries.get(device_name)
+        if entity:
+            async with self.client.post(
+                entity.path, headers=entity.headers, json=entity.body
+            ) as response:
+                logger.debug(
+                    "Got response from device %s: %s", entity.name, response.status
+                )
+        else:
+            logger.error("Device %s not found in control integration", device_name)
 
     async def turn_off(self, device_name):
         logger.info("Turning off device %s", device_name)

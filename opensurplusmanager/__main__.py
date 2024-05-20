@@ -47,8 +47,7 @@ async def main() -> int:
     """Main entry point for the Open Surplus Manager application."""
     _load_config()
     await _load_integrations()
-
-    return await core.core_loop()
+    await core.run()
 
 
 if __name__ == "__main__":
