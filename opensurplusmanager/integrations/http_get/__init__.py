@@ -85,7 +85,7 @@ class HttpGet:
                             logger.error(
                                 "Invalid API response for device %s", entity.name
                             )
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
 
 
 async def setup(core: Core) -> bool:

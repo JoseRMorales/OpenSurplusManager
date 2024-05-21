@@ -19,12 +19,12 @@ integrations:
 
 surplus:
     http_get:
-      path: http://localhost:8000/surplus
+      path: http://localhost:8000/surplus_production
 
 devices:
   - name: "device1"
     type: switch
-    expected_consumption: 1000
+    expected_consumption: 1600
     consumption_integration: 
       name: http_get
       path: http://localhost:8001/device1/consumption
@@ -40,6 +40,78 @@ devices:
       turn_off:
         name: http_post
         path: http://localhost:8001/device1/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "off"
+
+  - name: "device2"
+    type: switch
+    expected_consumption: 1000
+    consumption_integration: 
+      name: http_get
+      path: http://localhost:8001/device2/consumption
+    control_integration:
+      turn_on: 
+        name: http_post
+        path: http://localhost:8001/device2/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "on"
+      turn_off:
+        name: http_post
+        path: http://localhost:8001/device2/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "off"
+
+  - name: "device3"
+    type: switch
+    expected_consumption: 800
+    consumption_integration: 
+      name: http_get
+      path: http://localhost:8001/device3/consumption
+    control_integration:
+      turn_on: 
+        name: http_post
+        path: http://localhost:8001/device3/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "on"
+      turn_off:
+        name: http_post
+        path: http://localhost:8001/device3/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "off"
+
+  - name: "device4"
+    type: switch
+    expected_consumption: 400
+    consumption_integration: 
+      name: http_get
+      path: http://localhost:8001/device4/consumption
+    control_integration:
+      turn_on: 
+        name: http_post
+        path: http://localhost:8001/device4/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "on"
+      turn_off:
+        name: http_post
+        path: http://localhost:8001/device4/switch
         method: POST
         headers:
           Content-Type: application/json

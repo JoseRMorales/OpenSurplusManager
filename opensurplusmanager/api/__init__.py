@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from aiohttp import web
 
-from opensurplusmanager.core import Core
+if TYPE_CHECKING:
+    from opensurplusmanager.core import Core
 
 routes = web.RouteTableDef()
 
@@ -34,3 +38,8 @@ class Api:
 
     async def hello(self, request):
         return web.Response(text="Hello, world")
+
+
+async def api_start(core: Core):
+    api = Api(core=core)
+    await api.run()

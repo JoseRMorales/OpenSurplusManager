@@ -4,8 +4,9 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import Dict
 
+import opensurplusmanager.api as api
 from opensurplusmanager.models.consumption import ConsumptionEntity
-from opensurplusmanager.models.device import Device
+from opensurplusmanager.models.device import Device, DeviceType
 from opensurplusmanager.utils import logger
 
 
@@ -19,56 +20,6 @@ class Core:
 
     __devices: Dict[str, Device] = field(default_factory=dict)
 
-    async def balanced_load(self):
-        pass
-
-    async def focused_load(self):
-        for device in self.__devices.values():
-            if self.surplus < 1500:
-                await device.turn_off()
-            else:
-                await device.turn_on()
-
-    async def update(self):
-        logger.info("Core is running")
-        if self.balanced:
-            await self.balanced_load()
-        else:
-            await self.focused_load()
-
-    def print(self):
-        print("Core:")
-        print(f"Surplus: {self.surplus}")
-        print("Devices:")
-        print(self.__devices)
-        print()
-
-    def add_consumption_entity(self, name: str, entity: ConsumptionEntity):
-        if name in self.__devices:
-            self.__devices[name].consumption_entity = entity
-        else:
-            new_device = Device(
-                name=name, consumption_entity=entity, control_integration=None
-            )
-            self.__devices[name] = new_device
-        logger.info("Added consumption entity to device %s to core", entity)
-
-    def add_control_integration(self, name: str, integration):
-        if name in self.__devices:
-            self.__devices[name].control_integration = integration
-        else:
-            new_device = Device(
-                name=name, consumption_entity=None, control_integration=integration
-            )
-            self.__devices[name] = new_device
-        logger.info("Added control integration to device %s to core", name)
-
-    async def run(self):
-        from opensurplusmanager.api import Api
-
-        api = Api(core=self)
-        await api.run()
-
     @property
     def surplus(self):
         return self.__surplus
@@ -78,3 +29,73 @@ class Core:
         logger.info("Setting surplus to %s", value)
         self.__surplus = value
         asyncio.create_task(self.update())
+
+    async def balanced_load(self):
+        pass
+
+    async def focused_load(self):
+        devices = list(self.__devices.values())
+        if self.surplus > 0:
+            for device in devices:
+                left_surplus = self.surplus
+                if device.expected_consumption < left_surplus and not device.powered:
+                    left_surplus -= device.expected_consumption
+                    await device.turn_on()
+        else:
+            for device in reversed(devices):
+                left_surplus = self.surplus
+                if device.powered:
+                    await device.turn_off()
+
+                left_surplus += device.expected_consumption
+                if left_surplus >= 0:
+                    break
+
+    async def update(self):
+        logger.info("Core is running")
+        if self.balanced:
+            await self.balanced_load()
+        else:
+            await self.focused_load()
+        self.print()
+
+    def print(self):
+        print("Core:")
+        print(f"Surplus: {self.surplus}")
+        print("Devices:")
+        for device in self.__devices.values():
+            print(f"  {device.name}:")
+            print(f"    Powered: {device.powered}")
+            print(f"    Expected consumption: {device.expected_consumption}")
+            print(f"    Consumption: {device.get_consumption()}")
+        print()
+
+    def add_consumption_entity(self, name: str, entity: ConsumptionEntity):
+        if name in self.__devices:
+            self.__devices[name].consumption_entity = entity
+            logger.info("Added consumption entity to device %s to core", entity)
+
+    def add_control_integration(self, name: str, integration):
+        if name in self.__devices:
+            self.__devices[name].control_integration = integration
+        logger.info("Added control integration to device %s to core", name)
+
+    async def run(self):
+        await api.api_start(self)
+
+    def load_config(self):
+        devices = self.config.get("devices", [])
+
+        for device in devices:
+            name = device["name"]
+            device_type = DeviceType(device["type"])
+            expected_consumption = device["expected_consumption"]
+            new_device = Device(
+                name=name,
+                device_type=device_type,
+                expected_consumption=expected_consumption,
+                control_integration=None,
+                consumption_entity=None,
+            )
+            self.__devices[name] = new_device
+            logger.info("Added device %s to core", name)

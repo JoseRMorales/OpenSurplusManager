@@ -46,6 +46,7 @@ def _load_config() -> None:
 async def main() -> int:
     """Main entry point for the Open Surplus Manager application."""
     _load_config()
+    core.load_config()
     await _load_integrations()
     await core.run()
 
