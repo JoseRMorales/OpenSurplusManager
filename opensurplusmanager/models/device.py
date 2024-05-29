@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
-from .consumption import ConsumptionEntity
 from .integration import ControlIntegration
 
 
@@ -11,15 +10,12 @@ class DeviceType(StrEnum):
 
 @dataclass
 class Device:
-    powered = False
     name: str
     device_type: DeviceType
     expected_consumption: float
     control_integration: ControlIntegration
-    consumption_entity: ConsumptionEntity
-
-    def get_consumption(self):
-        return self.consumption_entity.consumption
+    powered: bool = field(default=False)
+    consumption: float = field(default=0, init=False)
 
     async def turn_on(self):
         await self.control_integration.turn_on(device_name=self.name)
@@ -28,3 +24,6 @@ class Device:
     async def turn_off(self):
         await self.control_integration.turn_off(device_name=self.name)
         self.powered = False
+
+    def add_control_integration(self, integration: ControlIntegration):
+        self.control_integration = integration

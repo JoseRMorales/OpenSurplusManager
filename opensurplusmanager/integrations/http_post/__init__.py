@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict
 
 import aiohttp
 
@@ -11,11 +10,7 @@ from opensurplusmanager.utils import logger
 
 @dataclass
 class HTTPPost(ControlIntegration):
-    core: Core
-    client: aiohttp.ClientSession = None
-    turn_on_entries: Dict[str, HTTPPostEntity] = field(default_factory=dict)
-    turn_off_entries: Dict[str, HTTPPostEntity] = field(default_factory=dict)
-    regulate_entries: Dict[str, HTTPPostEntity] = field(default_factory=dict)
+    client: aiohttp.ClientSession = field(init=False)
 
     def __load_devices(self):
         for device in self.core.config.get("devices", []):
@@ -23,7 +18,7 @@ class HTTPPost(ControlIntegration):
             logger.debug("Loading device %s", device["name"])
             # Check if exists 'turn_on' in entry type
             if "turn_on" in entry_type and entry_type["turn_on"]["name"] == "http_post":
-                self.turn_on_entries[device["name"]] = HTTPPostEntity(
+                self.turn_on_entities[device["name"]] = HTTPPostEntity(
                     name=device["name"],
                     path=entry_type["turn_on"]["path"],
                     method=entry_type["turn_on"]["method"],
@@ -36,7 +31,7 @@ class HTTPPost(ControlIntegration):
                 "turn_off" in entry_type
                 and entry_type["turn_off"]["name"] == "http_post"
             ):
-                self.turn_off_entries[device["name"]] = HTTPPostEntity(
+                self.turn_off_entities[device["name"]] = HTTPPostEntity(
                     name=device["name"],
                     path=entry_type["turn_off"]["path"],
                     method=entry_type["turn_off"]["method"],
@@ -49,7 +44,7 @@ class HTTPPost(ControlIntegration):
                 "regulate" in entry_type
                 and entry_type["regulate"]["name"] == "http_post"
             ):
-                self.regulate_entries[device["name"]] = HTTPPostEntity(
+                self.regulate_entities[device["name"]] = HTTPPostEntity(
                     name=device["name"],
                     path=entry_type["regulate"]["path"],
                     method=entry_type["regulate"]["method"],
@@ -59,22 +54,17 @@ class HTTPPost(ControlIntegration):
             device_name = device["name"]
             self.core.add_control_integration(device_name, self)
 
-    def __init__(self, core: Core):
+    def __post_init__(self):
         logger.info("Initializing HTTP Post integration...")
-        self.core = core
-        self.turn_on_entries: Dict[str, HTTPPostEntity] = {}
-        self.turn_off_entries: Dict[str, HTTPPostEntity] = {}
-        self.regulate_entries: Dict[str, HTTPPostEntity] = {}
-        self.__load_devices()
-        # Load aiohttp client
         self.client = aiohttp.ClientSession()
+        self.__load_devices()
 
     async def run(self) -> None:
         logger.info("Running HTTP Post integration...")
 
     async def turn_on(self, device_name):
         logger.info("Turning on device %s", device_name)
-        entity = self.turn_on_entries.get(device_name)
+        entity = self.turn_on_entities.get(device_name)
         if entity:
             async with self.client.post(
                 entity.path, headers=entity.headers, json=entity.body
@@ -87,7 +77,7 @@ class HTTPPost(ControlIntegration):
 
     async def turn_off(self, device_name):
         logger.info("Turning off device %s", device_name)
-        entity = self.turn_off_entries.get(device_name)
+        entity = self.turn_off_entities.get(device_name)
         if entity:
             async with self.client.post(
                 entity.path, headers=entity.headers, json=entity.body

@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
-from opensurplusmanager.models.consumption import ConsumptionSensor
+from opensurplusmanager.models.entity import ConsumptionEntity
 
 
 @dataclass
-class HTTPGetEntity(ConsumptionSensor):
-    name: str
+class HTTPGetEntity(ConsumptionEntity):
     path: str

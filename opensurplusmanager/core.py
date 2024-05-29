@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 from typing import Dict
 
 import opensurplusmanager.api as api
-from opensurplusmanager.models.consumption import ConsumptionEntity
 from opensurplusmanager.models.device import Device, DeviceType
+from opensurplusmanager.models.integration import ControlIntegration
 from opensurplusmanager.utils import logger
 
 
@@ -67,15 +67,10 @@ class Core:
             print(f"  {device.name}:")
             print(f"    Powered: {device.powered}")
             print(f"    Expected consumption: {device.expected_consumption}")
-            print(f"    Consumption: {device.get_consumption()}")
+            print(f"    Consumption: {device.consumption}")
         print()
 
-    def add_consumption_entity(self, name: str, entity: ConsumptionEntity):
-        if name in self.__devices:
-            self.__devices[name].consumption_entity = entity
-            logger.info("Added consumption entity to device %s to core", entity)
-
-    def add_control_integration(self, name: str, integration):
+    def add_control_integration(self, name: str, integration: ControlIntegration):
         if name in self.__devices:
             self.__devices[name].control_integration = integration
         logger.info("Added control integration to device %s to core", name)
@@ -95,7 +90,9 @@ class Core:
                 device_type=device_type,
                 expected_consumption=expected_consumption,
                 control_integration=None,
-                consumption_entity=None,
             )
             self.__devices[name] = new_device
             logger.info("Added device %s to core", name)
+
+    def get_device(self, name: str):
+        return self.__devices.get(name, None)
