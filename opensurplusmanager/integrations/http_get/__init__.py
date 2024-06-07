@@ -13,7 +13,7 @@ from opensurplusmanager.utils import logger
 @dataclass
 class HttpGet(ConsumptionIntegration):
     client: aiohttp.ClientSession = field(init=False)
-    timeout: int = field(default=1)
+    timeout: int = field(default=0.2)
 
     def __load_devices(self):
         if "surplus" in self.core.config and "http_get" in self.core.config["surplus"]:
@@ -64,9 +64,13 @@ class HttpGet(ConsumptionIntegration):
                         logger.error("Invalid API response for entity %s", entity.name)
             await asyncio.sleep(self.timeout)
 
+    async def close(self) -> None:
+        logger.info("Closing HTTP GET integration...")
+        await self.client.close()
 
-async def setup(core: Core) -> bool:
+
+async def setup(core: Core):
     http_get = HttpGet(core)
     asyncio.create_task(http_get.run())
 
-    return True
+    return http_get

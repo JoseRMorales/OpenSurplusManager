@@ -117,3 +117,36 @@ devices:
           Content-Type: application/json
         body:
           state: "off"
+
+  - name: "device5"
+    type: regulated
+    expected_consumption: 600
+    max_consumption: 2000
+    consumption_integration: 
+      name: http_get
+      path: http://localhost:8001/device5/consumption
+    control_integration:
+      turn_on: 
+        name: http_post
+        path: http://localhost:8001/device5/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "on"
+      turn_off:
+        name: http_post
+        path: http://localhost:8001/device5/switch
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          state: "off"
+      regulate:
+        name: http_post
+        path: http://localhost:8001/device5/regulate
+        method: POST
+        headers:
+          Content-Type: application/json
+        body:
+          power: $power

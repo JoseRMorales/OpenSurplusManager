@@ -15,6 +15,12 @@ class Core:
     consumption = 0
     production = 0
     __surplus = 0
+    # How much surplus power is left in a normal case.
+    # Positive is a surplus, negative is grid consumption.
+    surplus_margin = 100
+    # In case of a power peak where grid power is needed, how much
+    # is tolerated before turning off devices.
+    grid_margin = 100
     config = {}
     balanced = False
 
@@ -33,23 +39,60 @@ class Core:
     async def balanced_load(self):
         pass
 
-    async def focused_load(self):
-        devices = list(self.__devices.values())
-        if self.surplus > 0:
-            for device in devices:
-                left_surplus = self.surplus
-                if device.expected_consumption < left_surplus and not device.powered:
-                    left_surplus -= device.expected_consumption
-                    await device.turn_on()
-        else:
-            for device in reversed(devices):
-                left_surplus = self.surplus
-                if device.powered:
-                    await device.turn_off()
+    def total_devices_consumption(self):
+        return sum(
+            device.expected_consumption if device.powered else 0
+            for device in self.__devices.values()
+        )
 
-                left_surplus += device.expected_consumption
-                if left_surplus >= 0:
-                    break
+    async def __turn_on_priority(self, available_power: float):
+        devices = list(self.__devices.values())
+        for device in devices:
+            if device.device_type == DeviceType.SWITCH:
+                if device.expected_consumption < available_power and not device.powered:
+                    await device.turn_on()
+                    available_power -= device.expected_consumption
+            elif device.device_type == DeviceType.REGULATED:
+                if not device.powered:
+                    await device.turn_on()
+
+                if available_power > device.expected_consumption:
+                    device_power = (
+                        device.max_consumption
+                        if available_power > device.max_consumption
+                        else available_power
+                    )
+                    await device.regulate(device_power)
+                    available_power -= device_power
+
+    async def __turn_off_priority(self, exceeded_power: float):
+        devices = list(self.__devices.values())
+        for device in reversed(devices):
+            if device.powered and device.consumption > device.expected_consumption:
+                if device.device_type == DeviceType.SWITCH:
+                    await device.turn_off()
+                    exceeded_power -= device.expected_consumption
+
+                elif device.device_type == DeviceType.REGULATED:
+                    if (
+                        exceeded_power
+                        > device.consumption - device.expected_consumption
+                    ):
+                        await device.turn_off()
+                        exceeded_power -= device.expected_consumption
+                    else:
+                        await device.regulate(device.consumption - exceeded_power)
+                        break
+
+            if exceeded_power < 0:
+                break
+
+    async def focused_load(self):
+        surplus = self.surplus - self.surplus_margin
+        if surplus > 0:
+            await self.__turn_on_priority(surplus)
+        elif self.surplus < (-self.grid_margin):
+            await self.__turn_off_priority(self.surplus + self.surplus_margin)
 
     async def update(self):
         logger.info("Core is running")
@@ -94,5 +137,5 @@ class Core:
             self.__devices[name] = new_device
             logger.info("Added device %s to core", name)
 
-    def get_device(self, name: str):
+    def get_device(self, name: str) -> Device:
         return self.__devices.get(name, None)

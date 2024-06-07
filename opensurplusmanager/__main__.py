@@ -12,6 +12,8 @@ from opensurplusmanager.utils import logger
 
 core = Core()
 
+integrations = []
+
 
 async def _load_integrations() -> None:
     """Load the integrations for the Open Surplus Manager application."""
@@ -32,7 +34,9 @@ async def _load_integrations() -> None:
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 if hasattr(module, "setup"):
-                    await module.setup(core)
+                    integration = await module.setup(core)
+                    if integration is not None:
+                        integrations.append(integration)
 
 
 def _load_config() -> None:
@@ -51,9 +55,21 @@ async def main() -> int:
     await core.run()
 
 
+async def close_integrations() -> None:
+    """Close the integrations for the Open Surplus Manager application."""
+    logger.info("Closing integrations...")
+    for integration in integrations:
+        if hasattr(integration, "close"):
+            await integration.close()
+
+    logger.info("Integrations closed")
+
+
 if __name__ == "__main__":
     try:
         sys.exit(asyncio.run(main()))
     except KeyboardInterrupt:
         logger.info("Shutting down...")
+        asyncio.run(close_integrations())
+        logger.info("Shutdown complete")
         sys.exit(0)

@@ -89,10 +89,26 @@ class HTTPPost(ControlIntegration):
             logger.error("Device %s not found in control integration", device_name)
 
     async def regulate(self, device_name, power):
-        pass
+        logger.info("Regulating device %s to power %s", device_name, power)
+        entity = self.regulate_entities.get(device_name)
+        # Replace the $power in the body with the power value
+        for key, value in entity.body.items():
+            if value == "$power":
+                entity.body[key] = power
+        if entity:
+            async with self.client.post(
+                entity.path, headers=entity.headers, json=entity.body
+            ) as response:
+                logger.debug(
+                    "Got response from device %s: %s", entity.name, response.status
+                )
+        else:
+            logger.error("Device %s not found in control integration", device_name)
+
+    async def close(self) -> None:
+        logger.info("Closing HTTP Post integration...")
+        await self.client.close()
 
 
-async def setup(core: Core) -> bool:
-    HTTPPost(core)
-
-    return True
+async def setup(core: Core):
+    return HTTPPost(core)
