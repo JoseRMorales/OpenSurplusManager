@@ -71,5 +71,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("Shutting down...")
         asyncio.run(close_integrations())
-        logger.info("Shutdown complete")
+        logger.info("Shutdown completed")
         sys.exit(0)

@@ -1,7 +1,7 @@
 integrations:
-  - http_get:
-    timeout: 5
-  - http_post:
+  http_get:
+    timeout: 0.2
+  http_post:
 # consumption:
 #   type: consumption
 #   integration: 
@@ -20,6 +20,9 @@ integrations:
 surplus:
     http_get:
       path: http://localhost:8000/surplus_production
+
+surplus_margin: 100
+grid_margin: 100
 
 devices:
   - name: "device1"
@@ -73,6 +76,7 @@ devices:
   - name: "device3"
     type: switch
     expected_consumption: 800
+    cooldown: 2
     consumption_integration: 
       name: http_get
       path: http://localhost:8001/device3/consumption

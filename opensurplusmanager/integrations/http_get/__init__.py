@@ -13,7 +13,7 @@ from opensurplusmanager.utils import logger
 @dataclass
 class HttpGet(ConsumptionIntegration):
     client: aiohttp.ClientSession = field(init=False)
-    timeout: int = field(default=0.2)
+    __timeout: int = field(default=30)
 
     def __load_devices(self):
         if "surplus" in self.core.config and "http_get" in self.core.config["surplus"]:
@@ -43,33 +43,51 @@ class HttpGet(ConsumptionIntegration):
         logger.info("Initializing HTTP GET integration...")
         self.client = aiohttp.ClientSession()
         self.__load_devices()
+        self.__timeout = self.core.config["integrations"]["http_get"].get(
+            "timeout", self.__timeout
+        )
 
     async def run(self) -> None:
         logger.info("Running HTTP GET integration...")
         while True:
             for entity in self.entities:
-                async with self.client.get(entity.path) as response:
-                    logger.debug(
-                        "Got response from %s: %s",
+                try:
+                    async with self.client.get(entity.path) as response:
+                        logger.debug(
+                            "Got response from %s: %s. Content: %s",
+                            entity.name,
+                            response.status,
+                            await response.text(),
+                        )
+                        try:
+                            consumption = float(await response.text())
+                            if entity.consumption_type == ConsumptionType.SURPLUS:
+                                self.core.surplus = consumption
+                            elif entity.consumption_type == ConsumptionType.DEVICE:
+                                entity.device.consumption = consumption
+                        except ValueError:
+                            logger.error(
+                                "Invalid API response for entity %s", entity.name
+                            )
+                except (
+                    aiohttp.ClientConnectionError,
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError,
+                ):
+                    logger.error(
+                        "Could not connect to %s from entity %s. Trying again in %ss",
+                        entity.path,
                         entity.name,
-                        response.status,
+                        self.__timeout,
                     )
-                    try:
-                        consumption = float(await response.text())
-                        if entity.consumption_type == ConsumptionType.SURPLUS:
-                            self.core.surplus = consumption
-                        elif entity.consumption_type == ConsumptionType.DEVICE:
-                            entity.device.consumption = consumption
-                    except ValueError:
-                        logger.error("Invalid API response for entity %s", entity.name)
-            await asyncio.sleep(self.timeout)
+            await asyncio.sleep(self.__timeout)
 
     async def close(self) -> None:
         logger.info("Closing HTTP GET integration...")
         await self.client.close()
 
 
-async def setup(core: Core):
+async def setup(core: Core) -> HttpGet:
     http_get = HttpGet(core)
     asyncio.create_task(http_get.run())
 

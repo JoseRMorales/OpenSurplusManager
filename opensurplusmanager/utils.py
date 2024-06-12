@@ -3,11 +3,20 @@ import logging.handlers
 import os
 
 
+class RelativePathNameFilter(logging.Filter):
+    def filter(self, record):
+        if "opensurplusmanager" in record.pathname:
+            record.relative_pathname = record.pathname.split("opensurplusmanager")[1]
+        else:
+            record.relative_pathname = record.pathname
+        return True
+
+
 def setup_logger():
     # Get logging level from environment variable
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 
-    log_format = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s \
+    log_format = "[%(asctime)s] {%(relative_pathname)s:%(lineno)d} %(levelname)s \
         - %(message)s"
     date_format = "%d-%m-%Y %H:%M:%S"
 
@@ -25,11 +34,13 @@ def setup_logger():
 
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
+    console_handler.addFilter(RelativePathNameFilter())
 
     file_handler = logging.handlers.RotatingFileHandler(
         log_file, maxBytes=2 * 1024 * 1024, backupCount=3
     )
     file_handler.setFormatter(formatter)
+    file_handler.addFilter(RelativePathNameFilter())
 
     logger_setup.addHandler(console_handler)
     logger_setup.addHandler(file_handler)
