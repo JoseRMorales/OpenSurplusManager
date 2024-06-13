@@ -8,5 +8,5 @@ class HTTPPostEntity(ControlEntity):
     name: str
     path: str
     method: str
-    body: str
+    body: dict
     headers: dict

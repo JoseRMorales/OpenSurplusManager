@@ -92,13 +92,15 @@ class HTTPPost(ControlIntegration):
         logger.info("Regulating device %s to power %s", device_name, power)
         entity = self.regulate_entities.get(device_name)
         # Replace the $power in the body with the power value
-        for key, value in entity.body.items():
+        send_body = dict(entity.body)
+        for key, value in send_body.items():
             if value == "$power":
-                entity.body[key] = power
+                send_body[key] = power
         if entity:
             async with self.client.post(
-                entity.path, headers=entity.headers, json=entity.body
+                entity.path, headers=entity.headers, json=send_body
             ) as response:
+                print(send_body)
                 logger.debug(
                     "Got response from device %s: %s", entity.name, response.status
                 )
