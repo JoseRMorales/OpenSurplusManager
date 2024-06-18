@@ -15,7 +15,7 @@ class HttpGet(ConsumptionIntegration):
     client: aiohttp.ClientSession = field(init=False)
     __timeout: int = field(default=30)
 
-    def __load_devices(self):
+    def __load_entities(self):
         if "surplus" in self.core.config and "http_get" in self.core.config["surplus"]:
             surplus = HTTPGetEntity(
                 device=None,
@@ -42,7 +42,7 @@ class HttpGet(ConsumptionIntegration):
     def __post_init__(self):
         logger.info("Initializing HTTP GET integration...")
         self.client = aiohttp.ClientSession()
-        self.__load_devices()
+        self.__load_entities()
         self.__timeout = self.core.config["integrations"]["http_get"].get(
             "timeout", self.__timeout
         )

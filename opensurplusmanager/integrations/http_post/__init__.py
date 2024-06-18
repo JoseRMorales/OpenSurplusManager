@@ -12,7 +12,7 @@ from opensurplusmanager.utils import logger
 class HTTPPost(ControlIntegration):
     client: aiohttp.ClientSession = field(init=False)
 
-    def __load_devices(self):
+    def __load_entities(self):
         for device in self.core.config.get("devices", []):
             entry_type = device["control_integration"]
             logger.debug("Loading device %s", device["name"])
@@ -57,7 +57,7 @@ class HTTPPost(ControlIntegration):
     def __post_init__(self):
         logger.info("Initializing HTTP Post integration...")
         self.client = aiohttp.ClientSession()
-        self.__load_devices()
+        self.__load_entities()
 
     async def run(self) -> None:
         logger.info("Running HTTP Post integration...")

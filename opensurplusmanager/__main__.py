@@ -15,7 +15,7 @@ core = Core()
 integrations = []
 
 
-async def _load_integrations() -> None:
+async def __load_integrations() -> None:
     """Load the integrations for the Open Surplus Manager application."""
     logger.info("Loading integrations...")
 
@@ -39,7 +39,7 @@ async def _load_integrations() -> None:
                         integrations.append(integration)
 
 
-def _load_config() -> None:
+def __load_config() -> None:
     """Load the configuration for the Open Surplus Manager application."""
     logger.info("Loading configuration...")
     with open("config.yaml", "r", encoding="utf-8") as config_file:
@@ -49,9 +49,9 @@ def _load_config() -> None:
 
 async def main() -> int:
     """Main entry point for the Open Surplus Manager application."""
-    _load_config()
+    __load_config()
     core.load_config()
-    await _load_integrations()
+    await __load_integrations()
     await core.run()
 
 

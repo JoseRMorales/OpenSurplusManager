@@ -26,7 +26,7 @@ class Core:
     # is tolerated before turning off devices.
     grid_margin: float | None = field(default=100)
     config: Dict = field(default_factory=dict)
-
+    idle_power: float = field(default=100)
     devices: Dict[str, Device] = field(default_factory=dict)
 
     @property
@@ -50,7 +50,7 @@ class Core:
                         continue
                     available_power -= device.expected_consumption
             elif device.device_type == DeviceType.REGULATED:
-                if not device.powered and available_power > device.expected_consumption:
+                if device.expected_consumption < available_power and not device.powered:
                     try:
                         await device.turn_on()
                     except IntegrationConnectionError:
@@ -65,7 +65,7 @@ class Core:
                     except IntegrationConnectionError:
                         continue
                     available_power -= device_power
-                elif device.powered:
+                elif device.powered and device.consumption > self.idle_power:
                     total_device_power = device.consumption + available_power
                     device_power = (
                         device.max_consumption
@@ -82,7 +82,7 @@ class Core:
     async def __turn_off_priority(self, exceeded_power: float):
         devices = reversed(self.devices.values())
         for device in filter(lambda x: x.enabled, devices):
-            if device.powered and device.consumption >= 100:
+            if device.powered and device.consumption > self.idle_power:
                 if device.device_type == DeviceType.SWITCH:
                     try:
                         await device.turn_off()
