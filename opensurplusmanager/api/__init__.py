@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -64,7 +65,9 @@ class Api:
 
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, "localhost", 8080)
+        port = int(os.getenv("PORT", "8080"))
+        host = os.getenv("HOST", "localhost")
+        site = web.TCPSite(runner, host, port)
         await site.start()
 
         while True:

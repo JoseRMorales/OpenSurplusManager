@@ -42,9 +42,19 @@ async def __load_integrations() -> None:
 def __load_config() -> None:
     """Load the configuration for the Open Surplus Manager application."""
     logger.info("Loading configuration...")
-    with open("config.yaml", "r", encoding="utf-8") as config_file:
+
+    try:
+        config_file = open("config.yaml", "r", encoding="utf-8")
         config = yaml.load(config_file, Loader=yaml.FullLoader)
         core.config = config
+        logger.info("Configuration loaded")
+        config_file.close()
+    except FileNotFoundError:
+        logger.error("Configuration file not found")
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        logger.error("Error loading configuration file: %s", e)
+        sys.exit(1)
 
 
 async def main() -> int:

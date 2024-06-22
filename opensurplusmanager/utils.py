@@ -25,8 +25,8 @@ def setup_logger():
     logger_setup = logging.getLogger()
     logger_setup.setLevel(log_level)
 
-    log_file = "./logs/opensurplusmanager.log"
-    log_dir = "./logs"
+    log_dir = os.getenv("LOG_DIR", "./logs")
+    log_file = os.path.join(log_dir, "opensurplusmanager.log")
     # Create the log directory if it doesn't exist
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
