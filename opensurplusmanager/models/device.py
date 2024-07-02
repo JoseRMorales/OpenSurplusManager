@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
@@ -26,21 +25,36 @@ class IntegrationConnectionError(Exception):
     pass
 
 
-@dataclass
 class Device:
     name: str
     core: Core
     device_type: DeviceType
-    control_integration: ControlIntegration
     expected_consumption: float
-    __expected_consumption: float = field(default=0)
+    __expected_consumption: float
     max_consumption: float
-    __max_consumption: float | None = field(default=None)
-    powered: bool = field(default=False, init=False)
-    consumption: float = field(default=0, init=False)
+    __max_consumption: float
     cooldown: int
-    __cooldown: int | None = field(default=None)
-    enabled: bool = field(default=True, init=False)
+    __cooldown: int
+    consumption: float = 0
+    powered: bool = False
+    enabled: bool = True
+    control_integration: ControlIntegration | None = None
+
+    def __init__(
+        self,
+        name: str,
+        core: Core,
+        device_type: DeviceType,
+        expected_consumption: float,
+        max_consumption: float | None = None,
+        cooldown: int | None = None,
+    ):
+        self.name = name
+        self.core = core
+        self.device_type = device_type
+        self.__expected_consumption = expected_consumption
+        self.__max_consumption = max_consumption
+        self.__cooldown = cooldown
 
     @property
     def max_consumption(self):

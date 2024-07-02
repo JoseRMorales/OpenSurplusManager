@@ -57,6 +57,7 @@ class Api:
         api_app.add_routes(
             [
                 web.get("/", self.hello),
+                web.get("/core", self.get_core_state),
                 web.get(
                     "/device/{device_name}/consumption", self.get_device_consumption
                 ),
@@ -93,6 +94,15 @@ class Api:
 
     async def hello(self, _) -> web.Response:
         return web.json_response({"message": "Hello, World!"})
+
+    async def get_core_state(self, _) -> web.Response:
+        state = {
+            "surplus": self.core.surplus,
+            "surplus_margin": self.core.surplus_margin,
+            "grid_margin": self.core.grid_margin,
+            "idle_power": self.core.idle_power,
+        }
+        return web.json_response(state)
 
     async def get_surplus(self, _) -> web.Response:
         return web.json_response({"surplus": self.core.surplus})

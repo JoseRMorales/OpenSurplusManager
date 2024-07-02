@@ -188,10 +188,10 @@ class Core:
                 core=self,
                 device_type=device_type,
                 expected_consumption=expected_consumption,
-                control_integration=None,
                 max_consumption=max_consumption,
                 cooldown=cooldown,
             )
+            print(new_device)
             self.devices[name] = new_device
             logger.info("Added device %s to core", name)
 
