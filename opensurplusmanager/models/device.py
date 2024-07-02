@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from opensurplusmanager.core import Core
 
 from opensurplusmanager.utils import logger
 
@@ -23,14 +29,65 @@ class IntegrationConnectionError(Exception):
 @dataclass
 class Device:
     name: str
+    core: Core
     device_type: DeviceType
     control_integration: ControlIntegration
     expected_consumption: float
-    max_consumption: float | None = field(default=None)
-    powered: bool = field(default=False)
+    __expected_consumption: float = field(default=0)
+    max_consumption: float
+    __max_consumption: float | None = field(default=None)
+    powered: bool = field(default=False, init=False)
     consumption: float = field(default=0, init=False)
-    cooldown: int | None = field(default=None)
-    enabled: bool = field(default=True)
+    cooldown: int
+    __cooldown: int | None = field(default=None)
+    enabled: bool = field(default=True, init=False)
+
+    @property
+    def max_consumption(self):
+        return self.__max_consumption
+
+    @max_consumption.setter
+    def max_consumption(self, value):
+        logger.info("Setting max consumption for device %s to %s", self.name, value)
+        self.__max_consumption = value
+        device_config = self.core.config.get("devices", [])
+        for device in device_config:
+            if device["name"] == self.name:
+                device["max_consumption"] = value
+                self.core.save_config()
+                break
+
+    @property
+    def expected_consumption(self):
+        return self.__expected_consumption
+
+    @expected_consumption.setter
+    def expected_consumption(self, value):
+        logger.info(
+            "Setting expected consumption for device %s to %s", self.name, value
+        )
+        self.__expected_consumption = value
+        device_config = self.core.config.get("devices", [])
+        for device in device_config:
+            if device["name"] == self.name:
+                device["expected_consumption"] = value
+                self.core.save_config()
+                break
+
+    @property
+    def cooldown(self):
+        return self.__cooldown
+
+    @cooldown.setter
+    def cooldown(self, value):
+        logger.info("Setting cooldown for device %s to %s", self.name, value)
+        self.__cooldown = value
+        device_config = self.core.config.get("devices", [])
+        for device in device_config:
+            if device["name"] == self.name:
+                device["cooldown"] = value
+                self.core.save_config()
+                break
 
     async def turn_on(self):
         try:

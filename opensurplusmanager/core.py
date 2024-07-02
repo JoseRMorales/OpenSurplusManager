@@ -4,6 +4,8 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import Dict
 
+import yaml
+
 import opensurplusmanager.api as api
 from opensurplusmanager.models.device import (
     Device,
@@ -21,12 +23,12 @@ class Core:
     __surplus = 0
     # How much surplus power is left in a normal case.
     # Positive is a surplus, negative is grid consumption.
-    surplus_margin: float | None = field(default=100)
+    __surplus_margin: float | None = field(default=100)
     # In case of a power peak where grid power is needed, how much
     # is tolerated before turning off devices.
-    grid_margin: float | None = field(default=100)
+    __grid_margin: float | None = field(default=100)
     config: Dict = field(default_factory=dict)
-    idle_power: float = field(default=100)
+    __idle_power: float = field(default=100)
     devices: Dict[str, Device] = field(default_factory=dict)
 
     @property
@@ -38,6 +40,39 @@ class Core:
         logger.info("Setting surplus to %s", value)
         self.__surplus = value
         asyncio.create_task(self.__update())
+
+    @property
+    def surplus_margin(self):
+        return self.__surplus_margin
+
+    @surplus_margin.setter
+    def surplus_margin(self, value):
+        logger.info("Setting surplus margin to %s", value)
+        self.__surplus_margin = value
+        self.config["surplus_margin"] = value
+        self.save_config()
+
+    @property
+    def grid_margin(self):
+        return self.__grid_margin
+
+    @grid_margin.setter
+    def grid_margin(self, value):
+        logger.info("Setting grid margin to %s", value)
+        self.__grid_margin = value
+        self.config["grid_margin"] = value
+        self.save_config()
+
+    @property
+    def idle_power(self):
+        return self.__idle_power
+
+    @idle_power.setter
+    def idle_power(self, value):
+        logger.info("Setting idle power to %s", value)
+        self.__idle_power = value
+        self.config["idle_power"] = value
+        self.save_config()
 
     async def __turn_on_priority(self, available_power: float):
         devices = list(self.devices.values())
@@ -150,6 +185,7 @@ class Core:
             cooldown = device.get("cooldown", None)
             new_device = Device(
                 name=name,
+                core=self,
                 device_type=device_type,
                 expected_consumption=expected_consumption,
                 control_integration=None,
@@ -158,6 +194,14 @@ class Core:
             )
             self.devices[name] = new_device
             logger.info("Added device %s to core", name)
+
+    def save_config(self):
+        logger.info("Saving config...")
+        asyncio.create_task(self.__save_config_task())
+
+    async def __save_config_task(self):
+        with open("config.yaml", "w") as file:
+            yaml.dump(self.config, file, default_flow_style=False)
 
     def get_device(self, name: str) -> Device | None:
         return self.devices.get(name, None)
