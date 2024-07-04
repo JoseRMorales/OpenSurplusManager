@@ -1,5 +1,6 @@
 services:
-  app:
+  open-surplus-manager:
+    container_name: open-surplus-manager
     build:
       context: ..
       dockerfile: ./docker/Dockerfile

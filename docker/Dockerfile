@@ -1,5 +1,4 @@
 ARG PYTHON_VERSION=3.12.3
-ARG PACKAGE_NAME=opensurplusmanager
 FROM python:${PYTHON_VERSION}-alpine3.19
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -26,11 +25,10 @@ RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
 
 USER appuser
 
-COPY ${PACKAGE_NAME} .
+COPY . .
 
 EXPOSE 8080
 
-# Add this before the CMD line
 RUN ls -la /app && ls -la /app/logs
 
 CMD ["python", "-m", "opensurplusmanager"]

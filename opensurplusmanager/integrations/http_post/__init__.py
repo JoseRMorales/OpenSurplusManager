@@ -100,7 +100,6 @@ class HTTPPost(ControlIntegration):
             async with self.client.post(
                 entity.path, headers=entity.headers, json=send_body
             ) as response:
-                print(send_body)
                 logger.debug(
                     "Got response from device %s: %s", entity.name, response.status
                 )
