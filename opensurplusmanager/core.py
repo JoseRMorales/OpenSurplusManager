@@ -1,6 +1,7 @@
 """Core"""
 
 import asyncio
+import os
 from dataclasses import dataclass, field
 from typing import Dict
 
@@ -199,7 +200,8 @@ class Core:
         asyncio.create_task(self.__save_config_task())
 
     async def __save_config_task(self):
-        with open("config.yaml", "w") as file:
+        config_file_name = os.getenv("CONFIG_FILE", "config.yaml")
+        with open(config_file_name, "w", encoding="utf-8") as file:
             yaml.dump(self.config, file, default_flow_style=False)
 
     def get_device(self, name: str) -> Device | None:
