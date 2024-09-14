@@ -1,0 +1,7 @@
+services:
+  open-surplus-manager:
+    image: ghcr.io/josera9/opensurplusmanager:latest
+    container_name: open-surplus-manager
+    ports:
+      - 8080:8080
+    restart: unless-stopped
