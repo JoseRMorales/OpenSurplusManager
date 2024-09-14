@@ -14,6 +14,8 @@ core = Core()
 
 integrations = []
 
+config_file_name = os.getenv("CONFIG_FILE", "config.yaml")
+
 
 async def __load_integrations() -> None:
     """Load the integrations for the Open Surplus Manager application."""
@@ -44,7 +46,7 @@ def __load_config() -> None:
     logger.info("Loading configuration...")
 
     try:
-        config_file = open("config.yaml", "r", encoding="utf-8")
+        config_file = open(config_file_name, "r", encoding="utf-8")
         config = yaml.load(config_file, Loader=yaml.FullLoader)
         core.config = config
         logger.info("Configuration loaded")
