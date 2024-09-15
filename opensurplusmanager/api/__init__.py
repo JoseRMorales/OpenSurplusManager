@@ -85,7 +85,7 @@ class Api:
         runner = web.AppRunner(app)
         await runner.setup()
         port = int(os.getenv("PORT", "8080"))
-        host = os.getenv("HOST", "localhost")
+        host = os.getenv("HOST", "0.0.0.0")
         site = web.TCPSite(runner, host, port)
         await site.start()
 
