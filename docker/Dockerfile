@@ -21,9 +21,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   --mount=type=bind,source=requirements.txt,target=requirements.txt \
   python -m pip install -r requirements.txt
 
-RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
+RUN mkdir -p /app/logs
 
-RUN mkdir -p /config && chown appuser:appuser /config
+RUN mkdir -p /config
 
 USER appuser
 
