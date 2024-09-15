@@ -11,14 +11,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   --mount=type=bind,source=requirements.txt,target=requirements.txt \
   python -m pip install -r requirements.txt
 
-RUN mkdir -p /app/log
+RUN mkdir -p /app/logs
 
 RUN mkdir -p /config
 
 COPY . .
 
 EXPOSE 8080
-
-RUN ls -la /app && ls -la /app/logs
 
 CMD ["python", "-m", "opensurplusmanager"]
