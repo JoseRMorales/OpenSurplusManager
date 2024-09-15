@@ -16,6 +16,8 @@ from opensurplusmanager.models.device import (
 from opensurplusmanager.models.integration import ControlIntegration
 from opensurplusmanager.utils import logger
 
+config_file_name = os.getenv("CONFIG_FILE", "config.yaml")
+
 
 @dataclass
 class Core:
@@ -173,8 +175,8 @@ class Core:
         await api.api_start(self)
 
     def load_config(self):
-        self.grid_margin = self.config.get("grid_margin", self.grid_margin)
-        self.surplus_margin = self.config.get("surplus_margin", self.surplus_margin)
+        self.__grid_margin = self.config.get("grid_margin", self.grid_margin)
+        self.__surplus_margin = self.config.get("surplus_margin", self.surplus_margin)
 
         devices = self.config.get("devices", [])
 
@@ -200,7 +202,6 @@ class Core:
         asyncio.create_task(self.__save_config_task())
 
     async def __save_config_task(self):
-        config_file_name = os.getenv("CONFIG_FILE", "config.yaml")
         with open(config_file_name, "w", encoding="utf-8") as file:
             yaml.dump(self.config, file, default_flow_style=False)
 

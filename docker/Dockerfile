@@ -23,6 +23,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
 
+RUN mkdir -p /config && chown appuser:appuser /config
+
 USER appuser
 
 COPY . .
