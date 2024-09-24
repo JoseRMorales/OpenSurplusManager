@@ -7,7 +7,7 @@ from typing import Dict
 
 import yaml
 
-import opensurplusmanager.api as api
+from opensurplusmanager.api import Api
 from opensurplusmanager.models.device import (
     Device,
     DeviceType,
@@ -33,6 +33,7 @@ class Core:
     config: Dict = field(default_factory=dict)
     __idle_power: float = field(default=100)
     devices: Dict[str, Device] = field(default_factory=dict)
+    api: Api | None = None
 
     @property
     def surplus(self):
@@ -172,7 +173,9 @@ class Core:
         logger.info("Added control integration to device %s to core", name)
 
     async def run(self):
-        await api.api_start(self)
+        api = Api(core=self)
+        self.api = api
+        await api.run()
 
     def load_config(self):
         self.__grid_margin = self.config.get("grid_margin", self.grid_margin)

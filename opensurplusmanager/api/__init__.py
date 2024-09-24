@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from opensurplusmanager.models.device import Device
+from opensurplusmanager.utils import logger
 
 if TYPE_CHECKING:
     from opensurplusmanager.core import Core
@@ -49,6 +50,7 @@ class Api:
 
     def __init__(self, core: Core):
         self.core = core
+        self.runner = None
 
     async def run(self):
         app = web.Application()
@@ -83,11 +85,13 @@ class Api:
         app.add_subapp("/api", api_app)
 
         runner = web.AppRunner(app)
+        self.runner = runner
         await runner.setup()
         port = int(os.getenv("PORT", "8080"))
         host = os.getenv("HOST", "0.0.0.0")
         site = web.TCPSite(runner, host, port)
         await site.start()
+        logger.info("API started on %s:%s", host, port)
 
         while True:
             await asyncio.sleep(3600)  # sleep forever
@@ -192,7 +196,6 @@ class Api:
         device.cooldown = value
         return web.json_response({"cooldown": device.cooldown})
 
-
-async def api_start(core: Core):
-    api = Api(core=core)
-    await api.run()
+    async def close(self):
+        await self.runner.cleanup()
+        logger.info("API closed")
