@@ -64,7 +64,12 @@ async def main() -> int:
     __load_config()
     core.load_config()
     await __load_integrations()
-    await core.run()
+    try:
+        await core.run()
+    except OSError as e:
+        logger.error("Error running core: %s", e)
+        await close_integrations()
+        sys.exit(1)
 
 
 async def close_integrations() -> None:
@@ -82,7 +87,8 @@ if __name__ == "__main__":
         sys.exit(asyncio.run(main()))
     except KeyboardInterrupt:
         logger.info("Shutting down...")
-        asyncio.run(core.api.close())
+        if core.api is not None:
+            asyncio.run(core.api.close())
         asyncio.run(close_integrations())
         logger.info("Shutdown completed")
         sys.exit(0)
