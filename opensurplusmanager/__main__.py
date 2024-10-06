@@ -8,6 +8,7 @@ import sys
 import yaml
 
 from opensurplusmanager.core import Core
+from opensurplusmanager.exceptions import IntegrationInitializationError
 from opensurplusmanager.utils import logger
 
 core = Core()
@@ -26,9 +27,10 @@ async def __load_integrations() -> None:
 
     # Construct the path to the "integrations" folder relative to the script directory
     integrations_folder = os.path.join(script_dir, "integrations")
+    integrations_names = core.config.get("integrations", {})
 
-    for integration_dir in os.listdir(integrations_folder):
-        integration_path = os.path.join(integrations_folder, integration_dir)
+    for integration_name in integrations_names:
+        integration_path = os.path.join(integrations_folder, integration_name)
         if os.path.isdir(integration_path):
             init_file = os.path.join(integration_path, "__init__.py")
             if os.path.exists(init_file):
@@ -36,7 +38,17 @@ async def __load_integrations() -> None:
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 if hasattr(module, "setup"):
-                    integration = await module.setup(core)
+                    try:
+                        integration = await module.setup(core)
+                    except IntegrationInitializationError as e:
+                        logger.error(
+                            "Error initializing integration %s: %s", integration_name, e
+                        )
+                        for task in asyncio.all_tasks():
+                            if task is not asyncio.current_task():
+                                task.cancel()
+                        await close_integrations()
+                        sys.exit(1)
                     if integration is not None:
                         integrations.append(integration)
 

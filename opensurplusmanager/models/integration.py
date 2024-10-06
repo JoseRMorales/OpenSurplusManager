@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List
 
+from .entity import ConsumptionEntity, ControlEntity
+
 if TYPE_CHECKING:
     from opensurplusmanager.core import Core
-
-from .entity import ConsumptionEntity, ControlEntity
 
 
 @dataclass
@@ -37,4 +37,5 @@ class ControlIntegration(ABC):
 @dataclass
 class ConsumptionIntegration(ABC):
     core: Core
+    entities: List[ConsumptionEntity] = field(init=False, default_factory=list)
     entities: List[ConsumptionEntity] = field(init=False, default_factory=list)
