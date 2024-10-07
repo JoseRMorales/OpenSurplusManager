@@ -1,3 +1,5 @@
+"""Entity classes for OpenSurplusManager."""
+
 from __future__ import annotations
 
 from abc import ABC
@@ -11,10 +13,19 @@ if TYPE_CHECKING:
 
 @dataclass
 class ControlEntity(ABC):
+    """
+    Model for a control entity. Control integrations entities
+    should inherit from this class.
+    """
+
     name: str
 
 
 class ConsumptionType(Enum):
+    """
+    Enumerate the different types of consumption entities.
+    """
+
     CONSUMPTION = 1
     PRODUCTION = 2
     SURPLUS = 3
@@ -23,6 +34,11 @@ class ConsumptionType(Enum):
 
 @dataclass
 class ConsumptionEntity(ABC):
+    """
+    Model for a consumption entity. Consumption integrations entities
+    should inherit from this class.
+    """
+
     name: str
     consumption_type: ConsumptionType
     device: Device | None

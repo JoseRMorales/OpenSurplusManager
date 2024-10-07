@@ -1,3 +1,5 @@
+"""HTTP GET integration module."""
+
 import asyncio
 from dataclasses import dataclass, field
 
@@ -12,10 +14,13 @@ from opensurplusmanager.utils import logger
 
 @dataclass
 class HttpGet(ConsumptionIntegration):
+    """HTTP GET integration class, inherits from ConsumptionIntegration."""
+
     client: aiohttp.ClientSession = field(init=False)
     __timeout: int = field(default=30)
 
     def __load_entities(self):
+        """Load entities from the core configuration."""
         if "surplus" in self.core.config and "http_get" in self.core.config["surplus"]:
             surplus = HTTPGetEntity(
                 device=None,
@@ -47,7 +52,9 @@ class HttpGet(ConsumptionIntegration):
             "timeout", self.__timeout
         )
 
-    async def run(self) -> None:
+    async def run(self):
+        """Indefinitely runs the HTTP GET integration. Every `timeout` seconds, it will
+        query the configured entities."""
         logger.info("Running HTTP GET integration...")
         while True:
             for entity in self.entities:
@@ -82,12 +89,23 @@ class HttpGet(ConsumptionIntegration):
                     )
             await asyncio.sleep(self.__timeout)
 
-    async def close(self) -> None:
+    async def close(self):
+        """Safely closes the HTTP GET integration"""
         logger.info("Closing HTTP GET integration...")
         await self.client.close()
 
 
 async def setup(core: Core) -> HttpGet:
+    """
+    Method called by main to initialize the HTTP GET integration.
+
+    Parameters:
+        core (Core): The core instance.
+
+    Returns:
+        HttpGet: The initialized HTTP GET integration to close the integration
+        if needed.
+    """
     http_get = HttpGet(core)
     asyncio.create_task(http_get.run())
 

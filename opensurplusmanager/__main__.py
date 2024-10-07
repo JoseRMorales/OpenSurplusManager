@@ -22,13 +22,12 @@ async def __load_integrations() -> None:
     """Load the integrations for the Open Surplus Manager application."""
     logger.info("Loading integrations...")
 
-    # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Construct the path to the "integrations" folder relative to the script directory
     integrations_folder = os.path.join(script_dir, "integrations")
     integrations_names = core.config.get("integrations", {})
 
+    # Given the names of the integrations folder, if the name is in the config, load it
     for integration_name in integrations_names:
         integration_path = os.path.join(integrations_folder, integration_name)
         if os.path.isdir(integration_path):
@@ -44,6 +43,8 @@ async def __load_integrations() -> None:
                         logger.error(
                             "Error initializing integration %s: %s", integration_name, e
                         )
+                        # If an exception is raised during initialization,
+                        # close all integrations and exit
                         for task in asyncio.all_tasks():
                             if task is not asyncio.current_task():
                                 task.cancel()
@@ -54,7 +55,7 @@ async def __load_integrations() -> None:
 
 
 def __load_config() -> None:
-    """Load the configuration for the Open Surplus Manager application."""
+    """Load the configuration from a YAML file."""
     logger.info("Loading configuration...")
 
     try:
@@ -72,7 +73,7 @@ def __load_config() -> None:
 
 
 async def main() -> int:
-    """Main entry point for the Open Surplus Manager application."""
+    """Man entry point. Loads config, integrations and runs core."""
     __load_config()
     core.load_config()
     await __load_integrations()
@@ -85,7 +86,7 @@ async def main() -> int:
 
 
 async def close_integrations() -> None:
-    """Close the integrations for the Open Surplus Manager application."""
+    """Close the integrations if they have a close method."""
     logger.info("Closing integrations...")
     for integration in integrations:
         if hasattr(integration, "close"):

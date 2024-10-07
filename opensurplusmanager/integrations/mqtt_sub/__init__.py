@@ -1,3 +1,5 @@
+"""MQTT Subscribe integration module."""
+
 import asyncio
 from dataclasses import dataclass, field
 
@@ -13,9 +15,12 @@ from opensurplusmanager.utils import logger
 
 @dataclass
 class MQTTSub(ConsumptionIntegration):
+    """MQTT Subscribe integration class, inherits from ConsumptionIntegration."""
+
     client: aiomqtt.Client = field(init=False)
 
     def __load_entities(self):
+        """Load entities from the core configuration."""
         if "surplus" in self.core.config and "mqtt_sub" in self.core.config["surplus"]:
             surplus = MQTTSubEntity(
                 device=None,
@@ -57,7 +62,11 @@ class MQTTSub(ConsumptionIntegration):
         )
         self.__load_entities()
 
-    async def run(self) -> None:
+    async def run(self):
+        """
+        Indefinitely runs the MQTT Subscribe integration. It will subscribe to the
+        configured entities and update the core with the consumption values.
+        """
         logger.info("Running MQTT Subscribe integration...")
         for entity in self.entities:
             try:
@@ -84,11 +93,23 @@ class MQTTSub(ConsumptionIntegration):
             except aiomqtt.exceptions.MqttError as e:
                 logger.error("Error subscribing to topic %s: %s", entity.topic, e)
 
-    async def close(self) -> None:
+    async def close(self):
+        """Close the MQTT Subscribe integration."""
         logger.info("Closing MQTT Subscribe integration...")
 
 
 async def setup(core: Core) -> MQTTSub:
+    """
+    Method called by main to initialize the MQTT subscription integration.
+
+    Args:
+        core (Core): The core instance.
+
+    Returns:
+        HttpGet: The initialized MQTT subscription integration to close the integration
+        if needed.
+    """
     mqtt_sub = MQTTSub(core)
     asyncio.create_task(mqtt_sub.run())
+
     return mqtt_sub

@@ -1,10 +1,26 @@
+"""Utility functions for the package. Exports the logger."""
+
 import logging
 import logging.handlers
 import os
 
 
 class RelativePathNameFilter(logging.Filter):
-    def filter(self, record):
+    """
+    A filter to include the relative pathname instead of the absolute pathname to the
+    log.
+    """
+
+    def filter(self, record) -> bool:
+        """
+        Filters the log record to include the relative pathname.
+
+        Args:
+            record (logging.LogRecord): The log record.
+
+        Returns:
+            bool: True if the log record should be included, False otherwise.
+        """
         if "opensurplusmanager" in record.pathname:
             record.relative_pathname = record.pathname.split("opensurplusmanager")[1]
         else:
@@ -12,8 +28,16 @@ class RelativePathNameFilter(logging.Filter):
         return True
 
 
-def setup_logger():
-    # Get logging level from environment variable
+def setup_logger() -> logging.Logger:
+    """
+    Setups the logger for the package. It will read the log level from the LOG_LEVEL
+    environment variable and the log directory from the LOG_DIR environment variable.
+
+    Formats the log message with the relative pathname to the log file.
+
+    Returns:
+        logging.Logger: The logger for the package.
+    """
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 
     log_format = "[%(asctime)s] {%(relative_pathname)s:%(lineno)d} %(levelname)s \
@@ -27,7 +51,6 @@ def setup_logger():
 
     log_dir = os.getenv("LOG_DIR", "./logs")
     log_file = os.path.join(log_dir, "opensurplusmanager.log")
-    # Create the log directory if it doesn't exist
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     open(log_file, "a", encoding="utf-8").close()

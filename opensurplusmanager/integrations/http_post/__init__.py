@@ -1,3 +1,5 @@
+"""HTTP Post integration module."""
+
 from dataclasses import dataclass, field
 
 import aiohttp
@@ -10,9 +12,12 @@ from opensurplusmanager.utils import logger
 
 @dataclass
 class HTTPPost(ControlIntegration):
+    """HTTP Post integration class, inherits from ControlIntegration."""
+
     client: aiohttp.ClientSession = field(init=False)
 
     def __load_entities(self):
+        """Load entities from the core configuration."""
         for device in self.core.config.get("devices", []):
             entry_type = device["control_integration"]
             logger.debug("Loading device %s", device["name"])
@@ -59,10 +64,20 @@ class HTTPPost(ControlIntegration):
         self.client = aiohttp.ClientSession()
         self.__load_entities()
 
-    async def run(self) -> None:
+    async def run(self):
+        """
+        This integration will only run when a device calls the turn_on, turn_off or
+        regulate
+        """
         logger.info("Running HTTP Post integration...")
 
-    async def turn_on(self, device_name):
+    async def turn_on(self, device_name: str):
+        """
+        Turn on the device ordered by the core.
+
+        Parameters
+        device_name (str): The name of the device to turn on.
+        """
         logger.info("Turning on device %s", device_name)
         entity = self.turn_on_entities.get(device_name)
         if entity:
@@ -75,7 +90,13 @@ class HTTPPost(ControlIntegration):
         else:
             logger.error("Device %s not found in control integration", device_name)
 
-    async def turn_off(self, device_name):
+    async def turn_off(self, device_name: str):
+        """
+        Turn off the device ordered by the core.
+
+        Parameters
+        device_name (str): The name of the device to turn off.
+        """
         logger.info("Turning off device %s", device_name)
         entity = self.turn_off_entities.get(device_name)
         if entity:
@@ -88,7 +109,14 @@ class HTTPPost(ControlIntegration):
         else:
             logger.error("Device %s not found in control integration", device_name)
 
-    async def regulate(self, device_name, power):
+    async def regulate(self, device_name: str, power: float):
+        """
+        Regulate the device ordered by the core.
+
+        Parameters
+        device_name (str): The name of the device to regulate.
+        power (float): The power to regulate the device to.
+        """
         logger.info("Regulating device %s to power %s", device_name, power)
         entity = self.regulate_entities.get(device_name)
         # Replace the $power in the body with the power value
@@ -106,10 +134,21 @@ class HTTPPost(ControlIntegration):
         else:
             logger.error("Device %s not found in control integration", device_name)
 
-    async def close(self) -> None:
+    async def close(self):
+        """Safe close of the integration."""
         logger.info("Closing HTTP Post integration...")
         await self.client.close()
 
 
-async def setup(core: Core):
+async def setup(core: Core) -> HTTPPost:
+    """
+    Method called by main to initialize the HTTP POST integration.
+
+    Args:
+        core (Core): The core instance.
+
+    Returns:
+        HttpGet: The initialized HTTP POST integration to close the integration
+        if needed.
+    """
     return HTTPPost(core)
