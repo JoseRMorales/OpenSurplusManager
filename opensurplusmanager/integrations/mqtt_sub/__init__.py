@@ -102,7 +102,7 @@ async def setup(core: Core) -> MQTTSub:
     """
     Method called by main to initialize the MQTT subscription integration.
 
-    Args:
+    Parameters:
         core (Core): The core instance.
 
     Returns:

@@ -144,7 +144,7 @@ async def setup(core: Core) -> HTTPPost:
     """
     Method called by main to initialize the HTTP POST integration.
 
-    Args:
+    Parameters:
         core (Core): The core instance.
 
     Returns:

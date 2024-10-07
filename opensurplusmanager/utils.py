@@ -15,7 +15,7 @@ class RelativePathNameFilter(logging.Filter):
         """
         Filters the log record to include the relative pathname.
 
-        Args:
+        Parameters:
             record (logging.LogRecord): The log record.
 
         Returns:
