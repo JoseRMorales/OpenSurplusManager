@@ -1,21 +1,12 @@
 integrations:
   http_get:
-    timeout: 0.2
+    timeout: 15
   http_post:
-# consumption:
-#   type: consumption
-#   integration: 
-#     name: http_get
-#     path: http://localhost:8000/consumption
-#     method: GET
-#     timeout: 5
-
-# production:
-#   type: production
-#   integration: 
-#     name: http_get
-#     path: http://localhost:8000/production
-#     timeout: 5
+  mqtt_sub:
+    hostname: localhost
+    port: 1883
+    username: user1
+    password: 1234
 
 surplus:
     http_get:
