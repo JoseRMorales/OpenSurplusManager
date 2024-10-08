@@ -4,5 +4,9 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
+    environment:
+      CONFIG_FILE: /config/config.yaml
+    volumes:
+      - ../config.yaml:/config/config.yaml
     ports:
       - 8080:8080
