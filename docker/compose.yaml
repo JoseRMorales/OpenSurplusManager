@@ -1,7 +1,14 @@
 services:
   open-surplus-manager:
-    image: ghcr.io/JoseRMorales/opensurplusmanager:latest
+    image: ghcr.io/josermorales/opensurplusmanager:latest
     container_name: open-surplus-manager
     ports:
       - 8080:8080
     restart: unless-stopped
+    environment:
+      CONFIG_FILE: /config/config.yaml
+      # LOG_LEVEL: INFO
+      # HOST: "0.0.0.0"
+      # PORT: 8080
+    volumes:
+      - ./config:/config/
