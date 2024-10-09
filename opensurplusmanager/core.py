@@ -193,11 +193,10 @@ class Core:
         """
         logger.info("Core is running")
         self.__debug()
-        surplus = self.surplus - self.surplus_margin
-        if surplus > 0:
-            await self.__turn_on_priority(surplus)
+        if self.surplus > 0:
+            await self.__turn_on_priority(self.surplus)
         elif self.surplus < (-self.grid_margin):
-            await self.__turn_off_priority(-(surplus))
+            await self.__turn_off_priority(-self.surplus + self.surplus_margin)
 
     def __debug(self):
         """
