@@ -64,13 +64,6 @@ class HTTPPost(ControlIntegration):
         self.client = aiohttp.ClientSession()
         self.__load_entities()
 
-    async def run(self):
-        """
-        This integration will only run when a device calls the turn_on, turn_off or
-        regulate
-        """
-        logger.info("Running HTTP Post integration...")
-
     async def turn_on(self, device_name: str):
         """
         Turn on the device ordered by the core.

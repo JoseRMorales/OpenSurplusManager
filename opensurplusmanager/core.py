@@ -196,7 +196,7 @@ class Core:
         if self.surplus > 0:
             await self.__turn_on_priority(self.surplus)
         elif self.surplus < (-self.grid_margin):
-            await self.__turn_off_priority(-self.surplus + self.surplus_margin)
+            await self.__turn_off_priority(self.surplus_margin - self.surplus)
 
     def __debug(self):
         """

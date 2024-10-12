@@ -26,10 +26,8 @@ class ConsumptionType(Enum):
     Enumerate the different types of consumption entities.
     """
 
-    CONSUMPTION = 1
-    PRODUCTION = 2
-    SURPLUS = 3
-    DEVICE = 4
+    SURPLUS = 1
+    DEVICE = 2
 
 
 @dataclass

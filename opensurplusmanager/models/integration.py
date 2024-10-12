@@ -60,4 +60,3 @@ class ConsumptionIntegration(ABC):
 
     core: Core
     entities: List[ConsumptionEntity] = field(init=False, default_factory=list)
-    entities: List[ConsumptionEntity] = field(init=False, default_factory=list)
