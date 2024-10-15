@@ -71,7 +71,6 @@ class HTTPPost(ControlIntegration):
         Parameters
         device_name (str): The name of the device to turn on.
         """
-        logger.info("Turning on device %s", device_name)
         entity = self.turn_on_entities.get(device_name)
         if entity:
             async with self.client.post(
@@ -90,7 +89,6 @@ class HTTPPost(ControlIntegration):
         Parameters
         device_name (str): The name of the device to turn off.
         """
-        logger.info("Turning off device %s", device_name)
         entity = self.turn_off_entities.get(device_name)
         if entity:
             async with self.client.post(
@@ -110,7 +108,6 @@ class HTTPPost(ControlIntegration):
         device_name (str): The name of the device to regulate.
         power (float): The power to regulate the device to.
         """
-        logger.info("Regulating device %s to power %s", device_name, power)
         entity = self.regulate_entities.get(device_name)
         # Replace the $power in the body with the power value
         send_body = dict(entity.body)

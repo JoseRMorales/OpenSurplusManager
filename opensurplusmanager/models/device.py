@@ -115,13 +115,14 @@ class Device:
         Raises:
             IntegrationConnectionError: If there is an error turning on the device.
         """
+        logger.info("Turning on device %s", self.name)
         try:
             await self.control_integration.turn_on(device_name=self.name)
         except Exception as e:
             logger.error("Error turning on device %s: %s", self.name, e)
             raise IntegrationConnectionError() from e
         self.powered = True
-        await self.__start_cooldown()
+        asyncio.create_task(self.__start_cooldown())
 
     async def turn_off(self):
         """
@@ -130,13 +131,14 @@ class Device:
         Raises:
             IntegrationConnectionError: If there is an error turning off the device.
         """
+        logger.info("Turning off device %s", self.name)
         try:
             await self.control_integration.turn_off(device_name=self.name)
         except Exception as e:
             logger.error("Error turning off device %s: %s", self.name, e)
             raise IntegrationConnectionError() from e
         self.powered = False
-        await self.__start_cooldown()
+        asyncio.create_task(self.__start_cooldown())
 
     async def regulate(self, power: float):
         """
@@ -152,6 +154,7 @@ class Device:
         if self.device_type != DeviceType.REGULATED:
             raise InvalidDeviceType(f"Device {self.name} is not regulated")
 
+        logger.info("Regulating device %s to %s", self.name, power)
         try:
             await self.control_integration.regulate(device_name=self.name, power=power)
         except Exception as e:
