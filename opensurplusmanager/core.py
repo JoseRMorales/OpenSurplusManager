@@ -36,7 +36,7 @@ class Core:
     # is tolerated before turning off devices.
     __grid_margin: float | None = field(default=100)
     config: Dict = field(default_factory=dict)
-    __idle_power: float = field(default=100)
+    __idle_power: float = field(default=50)
     devices: Dict[str, Device] = field(default_factory=dict)
     api: Api | None = None
 

@@ -178,5 +178,3 @@ class Device:
             self.enabled = False
             await asyncio.sleep(self.cooldown)
             self.enabled = True
-            await asyncio.sleep(self.cooldown)
-            self.enabled = True
