@@ -161,16 +161,6 @@ class Device:
             logger.error("Error regulating device %s: %s", self.name, e)
             raise IntegrationConnectionError() from e
 
-    def add_control_integration(self, integration: ControlIntegration):
-        """
-        Allows to add the control integration because the integration is intialized
-        before the creation of the device.
-
-        Parameters:
-            integration (ControlIntegration): The control integration to add.
-        """
-        self.control_integration = integration
-
     async def __start_cooldown(self):
         """
         Starts the device cooldown because some devices requires some time

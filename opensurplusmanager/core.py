@@ -26,8 +26,6 @@ class Core:
     the attributes and methods to manage the devices and integrations.
     """
 
-    consumption = 0
-    production = 0
     __surplus = 0
     # How much surplus power is left in a normal case.
     # Positive is a surplus, negative is grid consumption.
